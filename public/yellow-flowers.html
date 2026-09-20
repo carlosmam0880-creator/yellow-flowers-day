@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>For You — Yellow Flowers Day, September 21st</title>
+  <meta
+    name="description"
+    content="A little garden of yellow lilies, each petal holding a love message for you nini. Happy Yellow Flowers Day."
+  />
+  <meta name="theme-color" content="#14110b" />
+
+  <!-- Fonts (needs internet; falls back to Georgia/system if offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ===========================================================
+       EDIT YOUR ROMANTIC MESSAGES:
+       Scroll down to the <script> section and edit the
+       petalMessages array. Everything else can stay as-is.
+       =========================================================== */
+
+    :root {
+      --font-serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+      --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: #14110b;
+      color: #fefce8;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    .main {
+      position: relative;
+      min-height: 100dvh;
+      overflow: hidden;
+      background: #14110b;
+    }
+
+    /* Soft ambient glow */
+    .ambient-glow {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: radial-gradient(
+        ellipse 80% 60% at 50% 40%,
+        rgba(255, 214, 89, 0.1),
+        transparent 70%
+      );
+    }
+
+    /* Falling petal canvas */
+    #petal-canvas {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+    }
+
+    /* Main content */
+    .content {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      min-height: 100dvh;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem 4rem;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    .content.entered {
+      opacity: 1;
+    }
+    @media (min-width: 640px) {
+      .content {
+        padding-top: 3.5rem;
+      }
+    }
+
+    header {
+      text-align: center;
+    }
+
+    h1.title {
+      margin: 0 auto;
+      max-width: 48rem;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 500;
+      font-size: 1.875rem;
+      line-height: 1.2;
+      color: #fef9c3;
+      text-wrap: balance;
+    }
+    @media (min-width: 640px) {
+      h1.title {
+        font-size: 2.25rem;
+      }
+    }
+    @media (min-width: 768px) {
+      h1.title {
+        font-size: 3rem;
+      }
+    }
+
+    p.hint {
+      margin-top: 1rem;
+      font-size: 0.875rem;
+      color: rgba(254, 240, 138, 0.6);
+      text-wrap: pretty;
+    }
+    @media (min-width: 640px) {
+      p.hint {
+        font-size: 1rem;
+      }
+    }
+
+    .flower-wrap {
+      margin-top: 1rem;
+      display: flex;
+      width: 100%;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (min-width: 640px) {
+      .flower-wrap {
+        margin-top: 2rem;
+      }
+    }
+
+    .flower-display {
+      position: relative;
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lily-stack {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .supporting-row {
+      margin-top: -2.5rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    @media (min-width: 640px) {
+      .supporting-row {
+        margin-top: -4rem;
+        gap: 1.5rem;
+      }
+    }
+
+    /* Lily sizes */
+    .lily-main {
+      width: 62vw;
+      max-width: 420px;
+      filter: drop-shadow(0 0 40px rgba(255, 214, 89, 0.25));
+    }
+    .lily-support {
+      width: 40vw;
+      max-width: 260px;
+      filter: drop-shadow(0 0 30px rgba(255, 214, 89, 0.2));
+    }
+    .lily-support.left {
+      transform: rotate(-12deg);
+    }
+    .lily-support.right {
+      transform: rotate(12deg);
+    }
+
+    /* Interactive lily petals */
+    .lily-petal {
+      cursor: pointer;
+      transform-box: fill-box;
+      transform-origin: 50% 100%;
+      transition: filter 0.35s ease, transform 0.35s ease;
+      outline: none;
+    }
+    .lily-petal:hover,
+    .lily-petal:focus-visible,
+    .lily-petal[data-active] {
+      filter: drop-shadow(0 0 10px rgba(255, 224, 120, 0.9))
+        drop-shadow(0 0 22px rgba(255, 200, 40, 0.55));
+      transform: scale(1.05);
+    }
+    .lily-petal:focus-visible {
+      filter: drop-shadow(0 0 4px #fff4bf)
+        drop-shadow(0 0 16px rgba(255, 210, 70, 0.8));
+    }
+
+    /* Floating message popup */
+    .popup {
+      pointer-events: none;
+      position: absolute;
+      z-index: 30;
+      transform: translate(-50%, -100%);
+    }
+    .popup-inner {
+      position: relative;
+      max-width: 240px;
+      border-radius: 1rem;
+      border: 1px solid rgba(253, 224, 71, 0.3);
+      background: rgba(26, 23, 18, 0.95);
+      padding: 1rem 1.25rem;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      animation: message-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @media (min-width: 640px) {
+      .popup-inner {
+        max-width: 280px;
+      }
+    }
+    .popup-inner p {
+      font-family: var(--font-serif);
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: #fef9c3;
+      text-wrap: pretty;
+    }
+    @media (min-width: 640px) {
+      .popup-inner p {
+        font-size: 1rem;
+      }
+    }
+    .popup-arrow {
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid rgba(26, 23, 18, 0.95);
+    }
+
+    /* Splash screen */
+    .splash {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 1.5rem;
+      text-align: center;
+      background: radial-gradient(
+        ellipse at center,
+        #26221a 0%,
+        #16130d 60%,
+        #0e0c08 100%
+      );
+      opacity: 1;
+      transition: opacity 900ms ease-in-out;
+    }
+    .splash.leaving {
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .splash .eyebrow {
+      font-family: var(--font-serif);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.35em;
+      color: rgba(254, 240, 138, 0.7);
+    }
+
+    .splash h1 {
+      margin-top: 1.5rem;
+      max-width: 42rem;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 500;
+      font-size: 2.25rem;
+      line-height: 1.2;
+      color: #fef9c3;
+      text-wrap: balance;
+    }
+    @media (min-width: 640px) {
+      .splash h1 {
+        font-size: 3rem;
+      }
+    }
+    @media (min-width: 768px) {
+      .splash h1 {
+        font-size: 3.75rem;
+      }
+    }
+
+    .splash .subtitle {
+      margin-top: 1.25rem;
+      max-width: 28rem;
+      font-size: 1rem;
+      color: rgba(254, 249, 195, 0.6);
+      text-wrap: pretty;
+    }
+
+    .claim-btn {
+      position: relative;
+      margin-top: 3rem;
+      overflow: hidden;
+      border: none;
+      border-radius: 9999px;
+      padding: 1rem 2.25rem;
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      font-weight: 500;
+      color: #1a1610;
+      cursor: pointer;
+      box-shadow: 0 0 40px rgba(255, 214, 89, 0.35);
+      transition: transform 0.3s ease;
+    }
+    .claim-btn:hover {
+      transform: scale(1.05);
+    }
+    .claim-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(253, 224, 71, 0.5);
+    }
+    .claim-btn .btn-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background: linear-gradient(to bottom, #fff0a8, #ffde59, #f5b400);
+      animation: glow-pulse 2.6s ease-in-out infinite;
+    }
+    .claim-btn .btn-label {
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Animations */
+    @keyframes fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-up {
+      opacity: 0;
+      animation: fade-up 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .delay-150 {
+      animation-delay: 150ms;
+    }
+    .delay-200 {
+      animation-delay: 200ms;
+    }
+    .delay-300 {
+      animation-delay: 300ms;
+    }
+    .delay-500 {
+      animation-delay: 500ms;
+    }
+
+    @keyframes glow-pulse {
+      0%,
+      100% {
+        box-shadow: 0 0 22px rgba(255, 214, 89, 0.45);
+        filter: brightness(1);
+      }
+      50% {
+        box-shadow: 0 0 46px rgba(255, 214, 89, 0.85);
+        filter: brightness(1.08);
+      }
+    }
+
+    @keyframes float-hint {
+      0%,
+      100% {
+        transform: translateY(0);
+        opacity: 0.55;
+      }
+      50% {
+        transform: translateY(-6px);
+        opacity: 0.9;
+      }
+    }
+    .animate-float-hint {
+      animation: float-hint 3.4s ease-in-out infinite;
+    }
+
+    @keyframes message-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-fade-up,
+      .animate-float-hint,
+      .claim-btn .btn-bg,
+      .popup-inner {
+        animation: none;
+        opacity: 1;
+      }
+      .lily-petal {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="main">
+    <div class="ambient-glow" aria-hidden="true"></div>
+
+    <!-- ==========================================================
+         BACKGROUND MUSIC
+         Keep this HTML file in the same folder as your audio file.
+         The src below points at "background-music.mp3" next to it.
+         ========================================================== -->
+    <audio id="bg-music" loop preload="auto" src="background-music.mp3">
+      Your browser does not support the audio element.
+    </audio>
+
+    <canvas id="petal-canvas" aria-hidden="true"></canvas>
+
+    <!-- Main content -->
+    <div class="content" id="content">
+      <header>
+        <h1 class="title animate-fade-up delay-200">
+          For the love of my life nini on this September 21st
+        </h1>
+        <p class="hint animate-float-hint">
+          Click on each petal to discover how much I love you
+        </p>
+      </header>
+
+      <div class="flower-wrap">
+        <div class="flower-display" id="flower-display">
+          <div class="lily-stack">
+            <!-- Lilies injected by script -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Splash screen -->
+    <div class="splash" id="splash">
+      <p class="eyebrow animate-fade-up">September 21st</p>
+      <h1 class="animate-fade-up delay-150">Today is September 21st...</h1>
+      <p class="subtitle animate-fade-up delay-300">
+        A little garden of words, grown just for you.
+      </p>
+      <button type="button" class="claim-btn animate-fade-up delay-500" id="claim-btn">
+        <span class="btn-bg" aria-hidden="true"></span>
+        <span class="btn-label">Claim my yellow flowers 💛</span>
+      </button>
+    </div>
+  </main>
+
+  <script>
+    // ========================================================================
+    // EDIT YOUR ROMANTIC MESSAGES HERE
+    // Each petal shows one of these messages when clicked/hovered.
+    // ========================================================================
+    const petalMessages = [
+      "Message 1 — You are so beautiful as lilies.",
+      "Message 2 — Every day with you feels like spring.",
+      "Message 3 — You are my favorite person in the world.",
+      "Message 4 — Your smile is brighter than these flowers.",
+      "Message 5 — I fall for you a little more each day.",
+      "Message 6 — Thank you for being exactly you.",
+      "Message 7 — You make ordinary moments magical.",
+      "Message 8 — Forever isn't long enough with you.",
+      "Message 9 — My heart chose you, and it always will.",
+      "Message 10 — You are my sunshine on cloudy days.",
+      "Message 11 — I love the way you laugh.",
+      "Message 12 — Being loved by you is my greatest gift.",
+      "Message 13 — You are home to me.",
+      "Message 14 — I'd choose you in every lifetime.",
+      "Message 15 — Happy Yellow Flowers Day, my darling.",
+      "Message 16 — I love you more than words can hold.",
+      "Message 17 — You are the yellow in my grey days.",
+      "Message 18 — With all my heart, today and always.",
+    ];
+
+    // ---- SVG lily builder --------------------------------------------------
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const PETAL_PATH = "M0,0 C -20,-46 -26,-98 0,-140 C 26,-98 20,-46 0,0 Z";
+    const PETAL_VEIN = "M0,-6 C -4,-50 -3,-100 0,-134";
+
+    let gradientIdSeed = 0;
+
+    function el(tag, attrs) {
+      const node = document.createElementNS(SVG_NS, tag);
+      for (const key in attrs) node.setAttribute(key, attrs[key]);
+      return node;
+    }
+
+    function buildLily(messageIndices, className) {
+      const uid = "g" + gradientIdSeed++;
+      const svg = el("svg", {
+        viewBox: "-170 -170 340 340",
+        class: className,
+        role: "group",
+        "aria-label": "Yellow lily with interactive petals",
+      });
+
+      // defs with unique gradient ids so each lily renders correctly
+      const defs = el("defs", {});
+      defs.innerHTML = `
+        <radialGradient id="petalGrad-${uid}" cx="50%" cy="90%" r="90%">
+          <stop offset="0%" stop-color="#fff6c9" />
+          <stop offset="45%" stop-color="#ffde59" />
+          <stop offset="100%" stop-color="#f0b400" />
+        </radialGradient>
+        <radialGradient id="petalGradActive-${uid}" cx="50%" cy="90%" r="90%">
+          <stop offset="0%" stop-color="#fffbe6" />
+          <stop offset="40%" stop-color="#ffe97a" />
+          <stop offset="100%" stop-color="#ffc61a" />
+        </radialGradient>
+        <radialGradient id="centerGrad-${uid}" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff2b0" />
+          <stop offset="100%" stop-color="#e88f00" />
+        </radialGradient>`;
+      svg.appendChild(defs);
+
+      const petalCount = 6;
+      for (let i = 0; i < petalCount; i++) {
+        const angle = (360 / petalCount) * i;
+        const globalIndex = messageIndices[i];
+        const g = el("g", {
+          transform: `rotate(${angle})`,
+          class: "lily-petal",
+          role: "button",
+          tabindex: "0",
+          "aria-label": `Petal ${i + 1} — reveal a love message`,
+        });
+        g.dataset.index = globalIndex;
+
+        const petal = el("path", {
+          d: PETAL_PATH,
+          fill: `url(#petalGrad-${uid})`,
+          stroke: "#c98a00",
+          "stroke-width": "1",
+          "stroke-opacity": "0.35",
+        });
+        petal.dataset.grad = uid;
+        g.appendChild(petal);
+
+        g.appendChild(
+          el("path", {
+            d: PETAL_VEIN,
+            fill: "none",
+            stroke: "#d19700",
+            "stroke-width": "1.2",
+            "stroke-opacity": "0.4",
+          })
+        );
+        g.appendChild(el("circle", { cx: "-5", cy: "-42", r: "1.6", fill: "#d97a00", opacity: "0.5" }));
+        g.appendChild(el("circle", { cx: "4", cy: "-58", r: "1.4", fill: "#d97a00", opacity: "0.5" }));
+        g.appendChild(el("circle", { cx: "-3", cy: "-74", r: "1.2", fill: "#d97a00", opacity: "0.4" }));
+
+        svg.appendChild(g);
+      }
+
+      // Stamens
+      for (let i = 0; i < 6; i++) {
+        const angle = (360 / 6) * i + 30;
+        const g = el("g", { transform: `rotate(${angle})` });
+        g.appendChild(
+          el("path", {
+            d: "M0,0 C 3,-18 2,-34 0,-46",
+            fill: "none",
+            stroke: "#e6a100",
+            "stroke-width": "2",
+            "stroke-linecap": "round",
+          })
+        );
+        g.appendChild(el("ellipse", { cx: "0", cy: "-50", rx: "4", ry: "7", fill: "#b45f00" }));
+        svg.appendChild(g);
+      }
+
+      svg.appendChild(el("circle", { cx: "0", cy: "0", r: "14", fill: `url(#centerGrad-${uid})` }));
+      svg.appendChild(el("circle", { cx: "0", cy: "0", r: "6", fill: "#c96f00", opacity: "0.8" }));
+
+      return svg;
+    }
+
+    // ---- Assemble flower display ------------------------------------------
+    const lilies = [
+      { indices: [0, 1, 2, 3, 4, 5], className: "lily-main" },
+      { indices: [6, 7, 8, 9, 10, 11], className: "lily-support left" },
+      { indices: [12, 13, 14, 15, 16, 17], className: "lily-support right" },
+    ];
+
+    const stack = document.querySelector(".lily-stack");
+    stack.appendChild(buildLily(lilies[0].indices, lilies[0].className));
+    const supportRow = document.createElement("div");
+    supportRow.className = "supporting-row";
+    supportRow.appendChild(buildLily(lilies[1].indices, lilies[1].className));
+    supportRow.appendChild(buildLily(lilies[2].indices, lilies[2].className));
+    stack.appendChild(supportRow);
+
+    // ---- Popup / message system -------------------------------------------
+    const display = document.getElementById("flower-display");
+    let popupEl = null;
+    let hideTimer = null;
+
+    function setActive(index, isActive) {
+      document.querySelectorAll(".lily-petal").forEach((p) => {
+        const petalPath = p.querySelector("path[data-grad]");
+        const grad = petalPath ? petalPath.dataset.grad : null;
+        if (Number(p.dataset.index) === index && isActive) {
+          p.setAttribute("data-active", "");
+          if (petalPath) petalPath.setAttribute("fill", `url(#petalGradActive-${grad})`);
+        } else {
+          p.removeAttribute("data-active");
+          if (petalPath) petalPath.setAttribute("fill", `url(#petalGrad-${grad})`);
+        }
+      });
+    }
+
+    function showPopup(index, targetEl) {
+      if (hideTimer) clearTimeout(hideTimer);
+      const rect = display.getBoundingClientRect();
+      const tRect = targetEl.getBoundingClientRect();
+      const baseX = tRect.left + tRect.width / 2;
+      const baseY = tRect.top + tRect.height / 2;
+      let x = baseX - rect.left;
+      const y = baseY - rect.top;
+
+      const containerWidth = display.clientWidth;
+      x = Math.min(Math.max(x, 130), Math.max(containerWidth - 130, 130));
+
+      if (!popupEl) {
+        popupEl = document.createElement("div");
+        popupEl.className = "popup";
+        popupEl.setAttribute("role", "status");
+        popupEl.setAttribute("aria-live", "polite");
+        display.appendChild(popupEl);
+      }
+      popupEl.innerHTML = `
+        <div class="popup-inner">
+          <p></p>
+          <span class="popup-arrow" aria-hidden="true"></span>
+        </div>`;
+      popupEl.querySelector("p").textContent = petalMessages[index];
+      popupEl.style.left = x + "px";
+      popupEl.style.top = Math.max(y - 16, 8) + "px";
+
+      setActive(index, true);
+    }
+
+    function scheduleHide() {
+      if (hideTimer) clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        if (popupEl) {
+          popupEl.remove();
+          popupEl = null;
+        }
+        setActive(-1, false);
+      }, 400);
+    }
+
+    document.querySelectorAll(".lily-petal").forEach((petal) => {
+      const index = Number(petal.dataset.index);
+      const trigger = (e) => showPopup(index, e.currentTarget);
+      petal.addEventListener("click", trigger);
+      petal.addEventListener("mouseenter", trigger);
+      petal.addEventListener("focus", trigger);
+      petal.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          showPopup(index, e.currentTarget);
+        }
+      });
+    });
+
+    display.addEventListener("mouseleave", scheduleHide);
+
+    // ---- Splash screen -----------------------------------------------------
+    const splash = document.getElementById("splash");
+    const content = document.getElementById("content");
+    const claimBtn = document.getElementById("claim-btn");
+    const audio = document.getElementById("bg-music");
+
+    claimBtn.addEventListener("click", () => {
+      content.classList.add("entered");
+      if (audio) {
+        audio.volume = 0.6;
+        audio.play().catch(() => {});
+      }
+      splash.classList.add("leaving");
+      setTimeout(() => splash.remove(), 900);
+    });
+
+    // ---- Falling petal particles ------------------------------------------
+    (function petalParticles() {
+      const canvas = document.getElementById("petal-canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const prefersReduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      const PETAL_COLORS = [
+        { h: 48, s: 96, l: 62 },
+        { h: 45, s: 93, l: 58 },
+        { h: 52, s: 98, l: 68 },
+        { h: 40, s: 90, l: 55 },
+      ];
+
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let petals = [];
+      let animationId = 0;
+
+      function petalCount() {
+        if (width < 640) return 14;
+        if (width < 1024) return 22;
+        return 32;
+      }
+
+      function makePetal(initial) {
+        const color = PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)];
+        return {
+          x: Math.random() * width,
+          y: initial ? Math.random() * height : -20 - Math.random() * height * 0.3,
+          size: 8 + Math.random() * 14,
+          speedY: 0.4 + Math.random() * 0.9,
+          speedX: -0.3 + Math.random() * 0.6,
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: -0.02 + Math.random() * 0.04,
+          sway: Math.random() * Math.PI * 2,
+          swaySpeed: 0.01 + Math.random() * 0.02,
+          opacity: 0.35 + Math.random() * 0.45,
+          color,
+        };
+      }
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        petals = Array.from({ length: petalCount() }, () => makePetal(true));
+      }
+
+      function drawPetal(p) {
+        const { h, s, l } = p.color;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.globalAlpha = p.opacity;
+        const grad = ctx.createLinearGradient(0, -p.size, 0, p.size);
+        grad.addColorStop(0, `hsl(${h}, ${s}%, ${Math.min(l + 12, 85)}%)`);
+        grad.addColorStop(1, `hsl(${h}, ${s}%, ${l}%)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(0, -p.size);
+        ctx.bezierCurveTo(p.size * 0.6, -p.size * 0.4, p.size * 0.5, p.size * 0.6, 0, p.size);
+        ctx.bezierCurveTo(-p.size * 0.5, p.size * 0.6, -p.size * 0.6, -p.size * 0.4, 0, -p.size);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function tick() {
+        ctx.clearRect(0, 0, width, height);
+        for (const p of petals) {
+          p.sway += p.swaySpeed;
+          p.x += p.speedX + Math.sin(p.sway) * 0.5;
+          p.y += p.speedY;
+          p.rotation += p.rotationSpeed;
+          if (p.y - p.size > height) Object.assign(p, makePetal(false));
+          if (p.x < -30) p.x = width + 30;
+          if (p.x > width + 30) p.x = -30;
+          drawPetal(p);
+        }
+        animationId = requestAnimationFrame(tick);
+      }
+
+      resize();
+      if (prefersReduced) {
+        for (const p of petals) drawPetal(p);
+      } else {
+        tick();
+      }
+
+      window.addEventListener("resize", resize);
+    })();
+  </script>
+</body>
+</html>
