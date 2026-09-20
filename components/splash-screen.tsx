@@ -38,7 +38,7 @@ export function SplashScreen({
       </h1>
 
       <p className="animate-fade-up mt-5 max-w-md text-pretty text-base text-yellow-100/60 [animation-delay:300ms]">
-        A little garden of words, grown just for you.
+        A little garden of words, each petal holding a love message for you nini. Happy Yellow Flowers Day.
       </p>
 
       <button
