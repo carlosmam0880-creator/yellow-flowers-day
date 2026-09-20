@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------------------
 // Each petal on the flowers shows one of these messages when clicked/hovered.
 // Just replace the text inside the quotes. Keep the "Message N" labels or
-// change them freely. The order maps to the petals from the top flower down.
+// 
 // ============================================================================
 
 export const petalMessages: string[] = [
-  "Message 1 — Write something sweet here, my love.",
+  "Message 1 — You're as beautiful as lilies.",
   "Message 2 — Every day with you feels like spring.",
   "Message 3 — You are my favorite person in the world.",
   "Message 4 — Your smile is brighter than these flowers.",
