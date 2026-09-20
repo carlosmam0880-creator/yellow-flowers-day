@@ -16,7 +16,7 @@ const sans = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'For You — Yellow Flowers Day, September 21st',
+  title: 'For You — Yellow Flowers Day, September st',
   description:
     'A little garden of yellow lilies, each petal holding a love message. Happy Yellow Flowers Day.',
   generator: 'v0.app',
